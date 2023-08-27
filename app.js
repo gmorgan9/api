@@ -31,35 +31,38 @@ pool.connect()
         console.error('Error connecting to PostgreSQL database', err);
     });
 
-app.post('/api/login', async (req, res) => {
-    const { work_email, password } = req.body;
-
-    try {
-        const client = await pool.connect();
-        const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
-
-        if (result.rows.length === 1) {
-            const hashedPasswordFromDB = result.rows[0].password;
-            const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
-
-            if (passwordMatch) {
-              // Login successful
-              console.log('Login successful for user:', work_email);
-              return res.status(200).json({ success: true, message: 'Login successful-api' });
+    app.post('/api/login', async (req, res) => {
+      const { work_email, password } = req.body;
+  
+      try {
+          const client = await pool.connect();
+          const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
+  
+          if (result.rows.length === 1) {
+              const hashedPasswordFromDB = result.rows[0].password;
+              const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
+  
+              if (passwordMatch) {
+                  // Login successful
+                  console.log('Login successful for user:', work_email);
+  
+                  // Redirect to a different URL (e.g., /dashboard) after successful login
+                  return res.redirect('https://app-aarc.morganserver.com/dashboard');
+              } else {
+                  console.log('Invalid password for user:', work_email);
+                  return res.status(401).json({ success: false, message: 'Invalid password' });
+              }
           } else {
-              console.log('Invalid password for user:', work_email);
-              return res.status(401).json({ success: false, message: 'Invalid password' });
+              return res.status(401).json({ success: false, message: 'User not found' });
           }
-        } else {
-            return res.status(401).json({ success: false, message: 'User not found' });
-        }
-
-        client.release();
-    } catch (err) {
-      console.error('Error during login', err);
-      return res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-});
+  
+          client.release();
+      } catch (err) {
+          console.error('Error during login', err);
+          return res.status(500).json({ success: false, message: 'Internal Server Error' });
+      }
+  });
+  
 
 const port = 3000;
 app.listen(port, () => {
