@@ -72,6 +72,9 @@ function startServer() {
         }
       } else {
         res.status(401).json({ success: false, message: 'Invalid credentials-outside' });
+        console.log('work_email:', work_email);
+        console.log('hashedPassword:', hashedPassword);
+
       }
 
       // Release the database connection
