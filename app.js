@@ -8,7 +8,7 @@ require('dotenv').config();
 
 // Enable CORS for specific origins
 const corsOptions = {
-  origin: ['https://app-aarc.morganserver.com', 'https://app-aarc.morganserver.com/dashboard/'],
+  origin: ['https://app-aarc.morganserver.com', 'https://app-aarc.morganserver.com/dashboard'],
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -51,7 +51,7 @@ async function startServer() {
           if (passwordMatch) {
             req.session.user = result.rows[0];
             // Instead of sending a JSON response, send a redirect URL
-            res.redirect('https://app-aarc.morganserver.com/dashboard/');
+            res.redirect('https://app-aarc.morganserver.com/dashboard');
           } else {
             return res.status(401).json({ success: false, message: 'Invalid password' });
           }
