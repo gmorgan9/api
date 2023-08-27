@@ -50,8 +50,9 @@ async function startServer() {
     
           if (passwordMatch) {
             req.session.user = result.rows[0];
+            console.log('Login successful, redirecting...');
             // Send a success response for the POST request
-            return res.json({ success: true, message: 'Login successful', redirected: true });
+            return res.json({ success: true, message: 'Login successful' });
           } else {
             return res.status(401).json({ success: false, message: 'Invalid password' });
           }
@@ -65,6 +66,7 @@ async function startServer() {
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
       }
     });
+    
     
     
     
