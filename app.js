@@ -1,6 +1,7 @@
 const express = require('express');
 const { Pool } = require('pg');
 const app = express();
+const session = require('express-session');
 
 // Load environment variables from .env
 require('dotenv').config();
@@ -11,6 +12,13 @@ const pool = new Pool({
     rejectUnauthorized: false // For local development; remove in production.
   }
 });
+
+// Configure express-session
+app.use(session({
+  secret: 'your_secret_key', // Change this to a strong, random secret
+  resave: false,
+  saveUninitialized: true
+}));
 
 pool.connect()
   .then(() => {
@@ -24,6 +32,8 @@ pool.connect()
 function startServer() {
   const port = process.env.PORT || 3000;
 
+  app.use(express.json()); // Parse JSON requests
+
   app.get('/', (req, res) => {
     res.send('Hello World!');
   });
@@ -32,22 +42,37 @@ function startServer() {
     console.log(`Server is running on port ${port}`);
   });
 
-  // Endpoint to retrieve user data
-  app.get('/api/users', async (req, res) => {
-    try {
-      // Query the database to get user data
-      const client = await pool.connect();
-      const result = await client.query('SELECT * FROM users'); // Replace 'users' with your table name
-      const users = result.rows;
+  // Endpoint to handle user login
+  app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
 
-      // Send the user data as JSON response
-      res.json(users);
+    try {
+      // Query the database to check user credentials
+      const client = await pool.connect();
+      const result = await client.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+
+      if (result.rows.length === 1) {
+        // User is authenticated; store user data in the session
+        req.session.user = result.rows[0];
+        res.json({ success: true, message: 'Login successful' });
+      } else {
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
 
       // Release the database connection
       client.release();
     } catch (err) {
-      console.error('Error retrieving user data', err);
-      res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error during login', err);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  });
+
+  // Endpoint to check if the user is authenticated
+  app.get('/api/check-auth', (req, res) => {
+    if (req.session.user) {
+      res.json({ authenticated: true, user: req.session.user });
+    } else {
+      res.json({ authenticated: false });
     }
   });
 
