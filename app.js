@@ -18,7 +18,7 @@ app.use(cors(corsOptions));
 // Configure express-session
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'your_secret_key', // Use environment variable for the session secret
+    secret: process.env.SESSION_SECRET, // Use environment variable for the session secret
     resave: false,
     saveUninitialized: true,
   })
