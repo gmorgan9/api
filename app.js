@@ -33,7 +33,7 @@ pool.connect()
     });
 
 // Replace with your secret key for JWT
-const JWT_SECRET = 'your-secret-key';
+const JWT_SECRET = 'jhduHDJhfF94J9mdjaadf89dfajLJ';
 
 // Function to generate JWT token
 function generateToken(user) {
