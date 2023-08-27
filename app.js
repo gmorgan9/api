@@ -44,12 +44,12 @@ function startServer() {
 
   // Endpoint to handle user login
   app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { work_email, password } = req.body;
 
     try {
       // Query the database to check user credentials
       const client = await pool.connect();
-      const result = await client.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+      const result = await client.query('SELECT * FROM users WHERE work_email = $1 AND password = $2', [work_email, password]);
 
       if (result.rows.length === 1) {
         // User is authenticated; store user data in the session
