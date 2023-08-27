@@ -5,14 +5,17 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 require('dotenv').config();
 
+
 const corsOptions = {
-    origin: 'https://app-aarc.morganserver.com', // Allow requests from this origin
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Define the HTTP methods allowed
-    credentials: true, // Include cookies in CORS requests if needed
-    optionsSuccessStatus: 204, // Set the preflight response status code to 204
+  origin: 'https://app-aarc.morganserver.com', // Allow requests from this origin
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Define the HTTP methods allowed
+  credentials: true, // Include cookies in CORS requests if needed
+  optionsSuccessStatus: 204, // Set the preflight response status code to 204
 };
 
 app.use(cors(corsOptions));
+
+
 app.use(express.json());
 
 const pool = new Pool({
