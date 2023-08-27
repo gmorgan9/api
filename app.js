@@ -2,23 +2,20 @@ const express = require('express');
 const { Pool } = require('pg');
 const app = express();
 const session = require('express-session');
-const bcrypt = require('bcrypt'); // Use bcrypt for password hashing
+const bcrypt = require('bcrypt');
 const cors = require('cors');
-
-// Load environment variables from .env
 require('dotenv').config();
 
 // Enable CORS for specific origins
 const corsOptions = {
   origin: ['https://app-aarc.morganserver.com'],
-  credentials: true, // Include cookies in CORS requests
+  credentials: true,
 };
 app.use(cors(corsOptions));
 
-// Configure express-session
 app.use(
   session({
-    secret: process.env.SESSION_SECRET, // Use environment variable for the session secret
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
   })
@@ -27,81 +24,62 @@ app.use(
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // For local development; remove in production.
+    rejectUnauthorized: false,
   },
 });
 
-// Check if the server successfully connects to the database
-pool.connect()
-  .then(() => {
+async function startServer() {
+  try {
+    await pool.connect();
     console.log('Connected to PostgreSQL database');
-    startServer();
-  })
-  .catch((err) => {
-    console.error('Error connecting to PostgreSQL database', err);
-  });
 
-function startServer() {
-  // Handle JSON requests
-  app.use(express.json());
+    app.use(express.json());
 
-  // LOGIN
-  app.post('/api/login', async (req, res) => {
-    const { work_email, password } = req.body;
+    app.post('/api/login', async (req, res) => {
+      const { work_email, password } = req.body;
 
-    try {
-      console.log('work_email:', work_email); // Add this line for debugging
+      try {
+        console.log('Received login request for:', work_email);
 
-      // Query the database to check user credentials
-      const client = await pool.connect();
-      const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
+        const client = await pool.connect();
+        const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
 
-      // console.log('Query result:', result); // Add this line for debugging
+        if (result.rows.length === 1) {
+          const hashedPasswordFromDB = result.rows[0].password;
+          const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
 
-      if (result.rows.length === 1) {
-        const hashedPasswordFromDB = result.rows[0].password;
-  
-        const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
-
-        console.log('Hashed password from DB:', hashedPasswordFromDB); // Add this line for debugging
-        console.log('Password match result:', passwordMatch); // Add this line for debugging
-  
-        if (passwordMatch) {
-          // User is authenticated; store user data in the session
-          req.session.user = result.rows[0];
-          res.json({ success: true, message: 'Login successful' });
+          if (passwordMatch) {
+            req.session.user = result.rows[0];
+            return res.json({ success: true, message: 'Login successful' });
+          } else {
+            return res.status(401).json({ success: false, message: 'Invalid password' });
+          }
         } else {
-          res.status(401).json({ success: false, message: 'Invalid password' });
+          return res.status(401).json({ success: false, message: 'User not found' });
         }
-      } else {
-        res.status(401).json({ success: false, message: 'User not found' });
+
+        client.release();
+      } catch (err) {
+        console.error('Error during login', err);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
       }
-  
-      // Release the database connection
-      client.release();
-    } catch (err) {
-      console.error('Error during login', err);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
-  });
+    });
 
-  
-  
-  
+    app.get('/api/check-auth', (req, res) => {
+      if (req.session.user) {
+        return res.json({ authenticated: true, user: req.session.user });
+      } else {
+        return res.json({ authenticated: false });
+      }
+    });
 
-
-  // Endpoint to check if the user is authenticated
-  app.get('/api/check-auth', (req, res) => {
-    if (req.session.user) {
-      res.json({ authenticated: true, user: req.session.user });
-    } else {
-      res.json({ authenticated: false });
-    }
-  });
-
-  // Start the server
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  } catch (err) {
+    console.error('Error connecting to PostgreSQL database', err);
+  }
 }
+
+startServer();
