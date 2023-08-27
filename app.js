@@ -69,7 +69,7 @@ function startServer() {
           res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
       } else {
-        res.status(401).json({ success: false, message: 'Invalid credentials' });
+        res.status(401).json({ success: false, message: 'Invalid credentials -outside' });
       }
 
       // Release the database connection
