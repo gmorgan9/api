@@ -31,10 +31,16 @@ const pool = new Pool({
   },
 });
 
+// Check if the database connection is successful during server startup
 pool.connect()
   .then(() => {
     console.log('Connected to PostgreSQL database');
-    startServer();
+
+    // Start the server only after a successful database connection
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
   })
   .catch((err) => {
     console.error('Error connecting to PostgreSQL database', err);
