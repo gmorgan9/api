@@ -8,7 +8,7 @@ require('dotenv').config();
 
 // Enable CORS for specific origins
 const corsOptions = {
-  origin: ['https://app-aarc.morganserver.com'],
+  origin: ['https://app-aarc.morganserver.com', 'https://app-aarc.morganserver.com/dashboard/'],
   credentials: true,
 };
 app.use(cors(corsOptions));
