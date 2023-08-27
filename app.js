@@ -31,6 +31,15 @@ const pool = new Pool({
   },
 });
 
+pool.connect()
+  .then(() => {
+    console.log('Connected to PostgreSQL database');
+    startServer();
+  })
+  .catch((err) => {
+    console.error('Error connecting to PostgreSQL database', err);
+  });
+
 // Handle JSON requests
 app.use(express.json());
 
