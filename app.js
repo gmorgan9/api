@@ -50,8 +50,8 @@ async function startServer() {
     
           if (passwordMatch) {
             req.session.user = result.rows[0];
-            // Instead of sending a JSON response, send a redirect URL
-            res.redirect('https://app-aarc.morganserver.com/dashboard');
+            // Send a success response for the POST request
+            return res.json({ success: true, message: 'Login successful' });
           } else {
             return res.status(401).json({ success: false, message: 'Invalid password' });
           }
@@ -65,6 +65,7 @@ async function startServer() {
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
       }
     });
+    
     
 
     app.get('/api/check-auth', (req, res) => {
