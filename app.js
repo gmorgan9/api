@@ -49,22 +49,12 @@ function startServer() {
     try {
       // Query the database to check user credentials
       const client = await pool.connect();
-      const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
+      const result = await client.query('SELECT * FROM users WHERE work_email = $1 AND password = $2', [work_email, password]);
 
       if (result.rows.length === 1) {
-        // Get the hashed password and salt from the database
-        const { password: hashedPassword, salt } = result.rows[0];
-
-        // Verify the provided password using the same salt and crypt function
-        const isPasswordValid = crypt(password, salt) === hashedPassword;
-
-        if (isPasswordValid) {
-          // User is authenticated; store user data in the session
-          req.session.user = result.rows[0];
-          res.json({ success: true, message: 'Login successful' });
-        } else {
-          res.status(401).json({ success: false, message: 'Invalid credentials' });
-        }
+        // User is authenticated; store user data in the session
+        req.session.user = result.rows[0];
+        res.json({ success: true, message: 'Login successful' });
       } else {
         res.status(401).json({ success: false, message: 'Invalid credentials' });
       }
@@ -90,10 +80,4 @@ function startServer() {
     console.log(`Received ${req.method} request to ${req.url}`);
     next();
   });
-}
-
-// Function to reproduce the PostgreSQL crypt function
-function crypt(password, salt) {
-  // Implement the crypt logic here, using the provided password and salt
-  // You can use a library like 'bcrypt' to handle this encryption securely
 }
