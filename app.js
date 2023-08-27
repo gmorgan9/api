@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const app = express();
 const bcrypt = require('bcrypt');
 const cors = require('cors');
-const jwt = require('jsonwebtoken'); // Add JWT library
+const session = require('express-session'); // Add express-session
 require('dotenv').config();
 
 const corsOptions = {
@@ -15,6 +15,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(session({ secret: 'your-secret-key', resave: false, saveUninitialized: true })); // Initialize sessions
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -32,14 +33,6 @@ pool.connect()
         console.error('Error connecting to PostgreSQL database', err);
     });
 
-// Replace with your secret key for JWT
-const JWT_SECRET = 'jhduHDJhfF94J9mdjaadf89dfajLJ';
-
-// Function to generate JWT token
-function generateToken(user) {
-    return jwt.sign(user, JWT_SECRET, { expiresIn: '1h' });
-}
-
 app.post('/api/login', async (req, res) => {
     const { work_email, password } = req.body;
 
@@ -53,14 +46,14 @@ app.post('/api/login', async (req, res) => {
             const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
 
             if (passwordMatch) {
-                // Generate a JWT token with user data
-                const token = generateToken({ user_id: user.user_id });
+                // Store user data in session
+                req.session.user = user;
 
                 // Update the logged_in status for the user to 1
                 await client.query('UPDATE users SET logged_in = 1 WHERE user_id = $1', [user.user_id]);
 
                 console.log('Login successful for user:', work_email);
-                return res.status(200).json({ success: true, message: 'Login successful-api', token });
+                return res.status(200).json({ success: true, message: 'Login successful-api' });
             } else {
                 console.log('Invalid password for user:', work_email);
                 return res.status(401).json({ success: false, message: 'Invalid password' });
@@ -77,24 +70,27 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/logout', async (req, res) => {
-    // Identify the user from the JWT token
-    const token = req.body.token;
-
-    if (!token) {
+    // Check if the user is logged in (session exists)
+    if (!req.session.user) {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const userId = decoded.user_id;
-
+        const user = req.session.user;
         const client = await pool.connect();
 
         // Update the logged_in status for the user to 0
-        await client.query('UPDATE users SET logged_in = 0 WHERE user_id = $1', [userId]);
+        await client.query('UPDATE users SET logged_in = 0 WHERE user_id = $1', [user.user_id]);
 
-        console.log('Logout successful for user:', userId);
-        return res.status(200).json({ success: true, message: 'Logout successful' });
+        // Destroy the session to log the user out
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Error destroying session', err);
+                return res.status(500).json({ success: false, message: 'Internal Server Error' });
+            }
+            console.log('Logout successful for user:', user.work_email);
+            return res.status(200).json({ success: true, message: 'Logout successful' });
+        });
     } catch (err) {
         console.error('Error during logout', err);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
