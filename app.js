@@ -37,33 +37,35 @@ async function startServer() {
 
     app.post('/api/login', async (req, res) => {
       const { work_email, password } = req.body;
-
+    
       try {
         console.log('Received login request for:', work_email);
-
+    
         const client = await pool.connect();
         const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
-
+    
         if (result.rows.length === 1) {
           const hashedPasswordFromDB = result.rows[0].password;
           const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
-
+    
           if (passwordMatch) {
             req.session.user = result.rows[0];
-            return res.json({ success: true, message: 'Login successful' });
+            // Instead of sending a JSON response, send a redirect URL
+            res.redirect('https://app-aarc.morganserver.com/dashboard');
           } else {
             return res.status(401).json({ success: false, message: 'Invalid password' });
           }
         } else {
           return res.status(401).json({ success: false, message: 'User not found' });
         }
-
+    
         client.release();
       } catch (err) {
         console.error('Error during login', err);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
       }
     });
+    
 
     app.get('/api/check-auth', (req, res) => {
       if (req.session.user) {
