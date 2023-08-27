@@ -51,7 +51,7 @@ async function startServer() {
           if (passwordMatch) {
             req.session.user = result.rows[0];
             // Send a success response for the POST request
-            return res.json({ success: true, message: 'Login successful', redirect: true });
+            return res.json({ success: true, message: 'Login successful', redirected: true });
           } else {
             return res.status(401).json({ success: false, message: 'Invalid password' });
           }
