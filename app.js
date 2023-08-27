@@ -32,9 +32,23 @@ function startServer() {
     console.log(`Server is running on port ${port}`);
   });
 
-  app.get('/api/data', (req, res) => {
-    const data = { message: 'This is your API data!' };
-    res.json(data);
+  // Endpoint to retrieve user data
+  app.get('/api/users', async (req, res) => {
+    try {
+      // Query the database to get user data
+      const client = await pool.connect();
+      const result = await client.query('SELECT * FROM users'); // Replace 'users' with your table name
+      const users = result.rows;
+
+      // Send the user data as JSON response
+      res.json(users);
+
+      // Release the database connection
+      client.release();
+    } catch (err) {
+      console.error('Error retrieving user data', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   });
 
   app.use((req, res, next) => {
