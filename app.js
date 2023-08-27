@@ -43,20 +43,22 @@ app.post('/api/login', async (req, res) => {
             const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
 
             if (passwordMatch) {
-                // Login successful
-                return res.status(200).json({ success: true, message: 'Login successful-api' });
-            } else {
-                return res.status(401).json({ success: false, message: 'Invalid password' });
-            }
+              // Login successful
+              console.log('Login successful for user:', work_email);
+              return res.status(200).json({ success: true, message: 'Login successful-api' });
+          } else {
+              console.log('Invalid password for user:', work_email);
+              return res.status(401).json({ success: false, message: 'Invalid password' });
+          }
         } else {
             return res.status(401).json({ success: false, message: 'User not found' });
         }
 
         client.release();
     } catch (err) {
-        console.error('Error during login', err);
-        return res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
+      console.error('Error during login', err);
+      return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
 });
 
 const port = 3000;
