@@ -51,7 +51,7 @@ async function startServer() {
           if (passwordMatch) {
             req.session.user = result.rows[0];
             // Instead of sending a JSON response, send a redirect URL
-            res.redirect('https://app-aarc.morganserver.com/dashboard');
+            res.redirect('https://app-aarc.morganserver.com/dashboard/');
           } else {
             return res.status(401).json({ success: false, message: 'Invalid password' });
           }
