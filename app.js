@@ -45,7 +45,7 @@ pool.connect()
   
               if (passwordMatch) {
                   // Update the logged_in status for the user to 1
-                  await client.query('UPDATE users SET logged_in = 1 WHERE id = $1', [user.id]);
+                  await client.query('UPDATE users SET logged_in = 1 WHERE user_id = $1', [user.id]);
   
                   console.log('Login successful for user:', work_email);
                   return res.status(200).json({ success: true, message: 'Login successful-api' });
@@ -73,7 +73,7 @@ pool.connect()
         const client = await pool.connect();
 
         // Update the logged_in status for the user to 0
-        await client.query('UPDATE users SET logged_in = 0 WHERE id = $1', [userId]);
+        await client.query('UPDATE users SET logged_in = 0 WHERE user_id = $1', [userId]);
 
         console.log('Logout successful for user:', userId);
         return res.status(200).json({ success: true, message: 'Logout successful' });
