@@ -52,7 +52,8 @@ async function startServer() {
             req.session.user = result.rows[0];
             console.log('Login successful, redirecting...');
             // Send a success response for the POST request
-            return res.json({ success: true, message: 'Login successful' });
+            // return res.json({ success: true, message: 'Login successful' });
+            window.location.href = 'https://app-aarc.morganserver.com/dashboard/';
           } else {
             return res.status(401).json({ success: false, message: 'Invalid password' });
           }
