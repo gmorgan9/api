@@ -18,9 +18,18 @@ app.use(express.json());
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: true,
     },
 });
+
+// Attempt to connect to the database
+pool.connect()
+    .then(() => {
+        console.log('Connected to PostgreSQL database');
+    })
+    .catch((err) => {
+        console.error('Error connecting to PostgreSQL database', err);
+    });
 
 app.post('/api/login', async (req, res) => {
     const { work_email, password } = req.body;
