@@ -53,13 +53,18 @@ function startServer() {
       // Query the database to check user credentials
       const client = await pool.connect();
       const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
-  
+
       console.log('work_email:', work_email); // Add this line for debugging
+      console.log('Query result:', result); // Add this line for debugging
   
       if (result.rows.length === 1) {
         const hashedPasswordFromDB = result.rows[0].password;
+
+        console.log('Hashed password from DB:', hashedPasswordFromDB); // Add this line for debugging
   
         const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
+
+        console.log('Password match result:', passwordMatch); // Add this line for debugging
   
         if (passwordMatch) {
           // User is authenticated; store user data in the session
@@ -79,6 +84,7 @@ function startServer() {
       res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
   });
+
   
   
   
