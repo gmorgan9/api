@@ -56,7 +56,7 @@ function startServer() {
       const client = await pool.connect();
       const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
 
-      console.log('Query result:', result); // Add this line for debugging
+      // console.log('Query result:', result); // Add this line for debugging
 
       if (result.rows.length === 1) {
         const hashedPasswordFromDB = result.rows[0].password;
