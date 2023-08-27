@@ -46,39 +46,38 @@ function startServer() {
   app.use(express.json());
 
   // Endpoint to handle user login
-  app.post('/api/login', async (req, res) => {
-    const { work_email, password } = req.body;
+app.post('/api/login', async (req, res) => {
+  const { work_email, password } = req.body;
 
-    try {
-      // Query the database to check user credentials
-      const client = await pool.connect();
-      const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
+  try {
+    // Query the database to check user credentials
+    const client = await pool.connect();
+    const result = await client.query('SELECT * FROM users WHERE work_email = $1', [work_email]);
 
-      if (result.rows.length === 1) {
-        // Get the hashed password from the database
-        const hashedPasswordFromDB = result.rows[0].password;
+    if (result.rows.length === 1) {
+      const hashedPasswordFromDB = result.rows[0].password;
 
-        // Compare the provided password with the hashed password
-        const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
+      const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
 
-        if (passwordMatch) {
-          // User is authenticated; store user data in the session
-          req.session.user = result.rows[0];
-          res.json({ success: true, message: 'Login successful' });
-        } else {
-          res.status(401).json({ success: false, message: 'Invalid credentials' });
-        }
+      if (passwordMatch) {
+        // User is authenticated; store user data in the session
+        req.session.user = result.rows[0];
+        res.json({ success: true, message: 'Login successful' });
       } else {
-        res.status(401).json({ success: false, message: 'Invalid credentials -outside' });
+        res.status(401).json({ success: false, message: 'Invalid password' });
       }
-
-      // Release the database connection
-      client.release();
-    } catch (err) {
-      console.error('Error during login', err);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    } else {
+      res.status(401).json({ success: false, message: 'User not found' });
     }
-  });
+
+    // Release the database connection
+    client.release();
+  } catch (err) {
+    console.error('Error during login', err);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
 
   // Endpoint to check if the user is authenticated
   app.get('/api/check-auth', (req, res) => {
