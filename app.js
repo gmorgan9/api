@@ -3,6 +3,10 @@ const { Pool } = require('pg');
 const app = express();
 const session = require('express-session');
 const md5 = require('md5'); // Import the md5 library
+const cors = require('cors');
+
+// Enable CORS for all routes
+app.use(cors());
 
 // Load environment variables from .env
 require('dotenv').config();
