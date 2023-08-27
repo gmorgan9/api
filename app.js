@@ -44,7 +44,7 @@ app.post('/api/login', async (req, res) => {
 
             if (passwordMatch) {
                 // Login successful
-                return res.status(200).json({ success: true, message: 'Login successful' });
+                return res.status(200).json({ success: true, message: 'Login successful-api' });
             } else {
                 return res.status(401).json({ success: false, message: 'Invalid password' });
             }
